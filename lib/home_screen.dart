@@ -54,7 +54,7 @@ class _HomeScreenState extends State<HomeScreen> {
     refreshData();
   }
 
-  void showButtonSheet(int? id) async {
+  void showButtonSheet(id) async {
     if (id != null) {
       final existingData = allData.firstWhere((element) => element[id] == id);
       _titleEditingController.text = existingData['title'];
@@ -67,11 +67,49 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       builder: (_) => Container(
         child: Padding(
-          padding: const EdgeInsets.only(top: 30, left: 15, right: 15),
+          padding: EdgeInsets.only(
+              top: 30,
+              left: 15,
+              right: 15,
+              bottom: MediaQuery.of(context).viewInsets.bottom + 50),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.end,
-            children: [],
+            children: [
+              TextField(
+                controller: _titleEditingController,
+                decoration: const InputDecoration(
+                    border: OutlineInputBorder(), hintText: "Title"),
+              ),
+              const SizedBox(
+                height: 10,
+              ),
+              TextField(
+                controller: _descEditingController,
+                decoration: const InputDecoration(
+                    border: OutlineInputBorder(), hintText: "Description"),
+              ),
+              const SizedBox(
+                height: 10,
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  if (id == null) {
+                    await addData();
+                  }
+                  if (id != null) {
+                    await updateData(id);
+                  }
+                  _titleEditingController.text = "";
+                  _descEditingController.text = "";
+                  Navigator.of(context).pop();
+                },
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Text(id == null ? 'Add Data' : "Update Data"),
+                ),
+              )
+            ],
           ),
         ),
       ),
@@ -81,7 +119,10 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      floatingActionButton: FloatingActionButton(onPressed: () => {}),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => showButtonSheet(null),
+        child: Icon(Icons.add),
+      ),
       appBar: AppBar(
         title: const Text('Home Screen'),
       ),
@@ -91,10 +132,33 @@ class _HomeScreenState extends State<HomeScreen> {
               itemCount: allData.length,
               itemBuilder: (BuildContext context, index) {
                 var data = allData[index];
-                return ListTile(
-                  title: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 5),
-                    child: Text(data['title']),
+                return Card(
+                  child: ListTile(
+                    leading: Text(data['id'].toString()),
+                    title: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 5),
+                      child: Text(data['title']),
+                    ),
+                    subtitle: Text(data['desc']),
+                    trailing: Container(
+                        width: 100,
+                        child: Row(children: [
+                          IconButton(
+                            onPressed: () {
+                              showButtonSheet(data['id'].toString());
+                            },
+                            icon: Icon(Icons.edit),
+                          ),
+                          IconButton(
+                            onPressed: () {
+                              deleteData(data['id']);
+                            },
+                            icon: Icon(
+                              Icons.delete,
+                              color: Colors.red,
+                            ),
+                          ),
+                        ])),
                   ),
                 );
               }),
